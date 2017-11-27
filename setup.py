@@ -10,6 +10,7 @@ with open(os.path.join(here, 'CHANGES.rst')) as fp:
 
 install_requires = [
     'WebOb',
+    'tzlocal'
 ]
 
 setup(
