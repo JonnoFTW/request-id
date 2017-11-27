@@ -2,6 +2,8 @@ import logging
 import threading
 import time
 import uuid
+from datetime import datetime
+import tzlocal
 
 from webob.dec import wsgify
 from webob.exc import HTTPInternalServerError
@@ -101,14 +103,7 @@ class RequestIdMiddleware(object):
     def write_log(self, request, start, duration, status, bytes):
         if bytes is None:
             bytes = '-'
-        if time.daylight:
-            offset = time.altzone / 60 / 60 * -100
-        else:
-            offset = time.timezone / 60 / 60 * -100
-        if offset >= 0:
-            offset = '+%0.4d' % offset
-        elif offset < 0:
-            offset = '%0.4d' % offset
+        timestamp = datetime.now().astimezone(tzlocal.get_localzone()).strftime('%d/%b/%Y:%H:%M:%S %z')
         remote_addr = '-'
         if request.environ.get('HTTP_X_FORWARDED_FOR'):
             remote_addr = request.environ['HTTP_X_FORWARDED_FOR']
@@ -125,7 +120,7 @@ class RequestIdMiddleware(object):
             'HTTP_VERSION': request.environ.get('SERVER_PROTOCOL'),
             'HTTP_REFERER': request.environ.get('HTTP_REFERER', '-'),
             'HTTP_USER_AGENT': request.environ.get('HTTP_USER_AGENT', '-'),
-            'time': time.strftime('%d/%b/%Y:%H:%M:%S ', start) + offset,
+            'time':timestamp,
             'duration': '%.3f' % duration,
             'bytes': bytes,
             'status': status,
